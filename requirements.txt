@@ -1,3 +1,5 @@
-git add requirements.txt
-git commit -m "update requirements"
-git push
+streamlit
+pandas
+numpy
+scikit-learn
+plotly
