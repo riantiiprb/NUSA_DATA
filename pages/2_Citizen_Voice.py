@@ -20,10 +20,31 @@ st.title("Citizen Voice Intelligence")
 # LOAD MODEL
 # =====================
 
+BASE_DIR = os.path.dirname(
+    os.path.dirname(__file__)
+)
+
+
 model = joblib.load(
     os.path.join(
-        os.path.dirname(__file__),
+        BASE_DIR,
         "model_linear_svm.pkl"
+    )
+)
+
+
+tfidf = joblib.load(
+    os.path.join(
+        BASE_DIR,
+        "tfidf_vectorizer.pkl"
+    )
+)
+
+
+le = joblib.load(
+    os.path.join(
+        BASE_DIR,
+        "label_encoder.pkl"
     )
 )
 
