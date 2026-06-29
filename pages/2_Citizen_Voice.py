@@ -12,6 +12,29 @@ st.set_page_config(
 
 st.title("Citizen Voice Intelligence")
 
+model = joblib.load(
+    os.path.join(
+        os.path.dirname(__file__),
+        "nlp_model.pkl"
+    )
+)
+
+tfidf = joblib.load(
+    os.path.join(
+        os.path.dirname(__file__),
+        "tfidf.pkl"
+    )
+)
+
+le = joblib.load(
+    os.path.join(
+        os.path.dirname(__file__),
+        "label_encoder.pkl"
+    )
+)
+
+
+
 st.write(
 """
 Analisis aspirasi masyarakat menggunakan 
