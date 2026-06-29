@@ -44,7 +44,7 @@ tfidf = joblib.load(
 le = joblib.load(
     os.path.join(
         BASE_DIR,
-        "label_encoder.pkl"
+        "label_encoder (1).pkl"
     )
 )
 
