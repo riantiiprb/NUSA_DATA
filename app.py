@@ -1,5 +1,6 @@
 import streamlit as st
-
+import joblib
+import os
 
 st.set_page_config(
 page_title="NUSA DATA",
