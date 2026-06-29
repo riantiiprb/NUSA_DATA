@@ -1,67 +1,154 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.express as px
 
+from sklearn.preprocessing import RobustScaler
 from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
+
+
+st.set_page_config(
+    page_title="Development Priority",
+    layout="wide"
+)
 
 
 st.title("Development Priority Engine")
 
 
+
 file = st.file_uploader(
     "Upload Data Pembangunan",
-    type=["csv"]
+    type=["csv","xlsx"]
 )
+
 
 
 if file:
 
-    pembangunan = pd.read_csv(file)
+
+    # =====================
+    # LOAD DATA
+    # =====================
+
+    if file.name.endswith(".xlsx"):
+        df = pd.read_excel(file)
+    else:
+        df = pd.read_csv(file)
 
 
-    st.subheader("Data Pembangunan")
+
+    st.subheader(
+        "Dataset Pembangunan"
+    )
 
     st.dataframe(
-        pembangunan.head()
+        df.head()
     )
 
 
+
+    # =====================
+    # RENAME KOLOM
+    # SESUAI DATASET TEMANMU
+    # =====================
+
+    df = df.rename(columns={
+
+        df.columns[0]:"Provinsi",
+        df.columns[1]:"Kemiskinan",
+        df.columns[2]:"Pengangguran",
+        df.columns[3]:"PDRB",
+        df.columns[4]:"RLS",
+        df.columns[5]:"Sanitasi",
+        df.columns[6]:"AirMinum",
+        df.columns[7]:"Internet"
+
+    })
+
+
+
     fitur = [
-        "Persentase Penduduk Miskin (P0) Menurut Provinsi dan Daerah (Persen), 2025 Perkotaan",
-        "Tingkat Pengangguran Terbuka Menurut Provinsi (Persen), 2025",
-        "Rata-rata Lama Sekolah (Tahun), 2025"
+        "Kemiskinan",
+        "Pengangguran",
+        "PDRB",
+        "RLS",
+        "Sanitasi",
+        "AirMinum",
+        "Internet"
     ]
+
 
 
     for col in fitur:
 
-        pembangunan[col] = pd.to_numeric(
-            pembangunan[col],
+        df[col] = pd.to_numeric(
+            df[col],
             errors="coerce"
         )
 
 
-    pembangunan = pembangunan.dropna(
-        subset=fitur
-    )
+    df = df.dropna()
 
 
-    scaler = StandardScaler()
+
+    # =====================
+    # ROBUST SCALER
+    # (punya temanmu)
+    # =====================
+
+
+    scaler = RobustScaler()
 
 
     X = scaler.fit_transform(
-        pembangunan[fitur]
+        df[fitur]
     )
 
 
+
+    # =====================
+    # KMEANS K=2
+    # =====================
+
+
     model = KMeans(
-        n_clusters=3,
+        n_clusters=2,
+        n_init=100,
         random_state=42
     )
 
 
-    pembangunan["Cluster"] = model.fit_predict(X)
+    df["Cluster"] = (
+        model.fit_predict(X)
+    )
+
+
+
+    # =====================
+    # LABELING
+    Maju/Tertinggal
+    # =====================
+
+
+    rata = (
+        df.groupby("Cluster")
+        ["PDRB"]
+        .mean()
+    )
+
+
+    cluster_maju = (
+        rata.idxmax()
+    )
+
+
+    df["Label"] = np.where(
+        df["Cluster"]==cluster_maju,
+        "Maju",
+        "Tertinggal"
+    )
+
 
 
     st.success(
@@ -69,12 +156,35 @@ if file:
     )
 
 
+
+    # =====================
+    # OUTPUT
+    # =====================
+
+
+    st.subheader(
+        "Hasil Prioritas"
+    )
+
+
+    st.dataframe(
+        df[
+            [
+            "Provinsi",
+            "Label"
+            ]
+        ]
+    )
+
+
+
     fig = px.scatter(
-        pembangunan,
-        x=fitur[0],
-        y=fitur[1],
-        color="Cluster",
-        hover_name="Provinsi"
+        df,
+        x="Kemiskinan",
+        y="PDRB",
+        color="Label",
+        hover_name="Provinsi",
+        title="Cluster Provinsi"
     )
 
 
@@ -82,3 +192,7 @@ if file:
         fig,
         use_container_width=True
     )
+
+
+
+    st.session_state["cluster_result"] = df
