@@ -49,23 +49,6 @@ le = joblib.load(
 )
 
 
-tfidf = joblib.load(
-    os.path.join(
-        os.path.dirname(__file__),
-        "tfidf_vectorizer.pkl"
-    )
-)
-
-
-le = joblib.load(
-    os.path.join(
-        os.path.dirname(__file__),
-        "label_encoder (1).pkl"
-    )
-)
-
-
-
 st.write(
 """
 Analisis aspirasi masyarakat menggunakan 
@@ -73,7 +56,6 @@ Natural Language Processing (NLP)
 untuk mengidentifikasi isu publik.
 """
 )
-
 
 
 # =====================
