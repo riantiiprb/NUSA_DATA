@@ -11,15 +11,6 @@ st.subheader(
 )
 
 
-st.write(
-"""
-Mengintegrasikan hasil:
-- Development Priority Engine
-- Citizen Voice Intelligence
-
-untuk menghasilkan rekomendasi program.
-"""
-)
 
 
 # input hasil analisis
