@@ -5,60 +5,48 @@ st.set_page_config(
 page_title="NUSA DATA",
 layout="wide"
 )
+
+# =====================
+# CSS DESIGN
+# =====================
+
 st.markdown("""
 <style>
 
-.stApp{
+/* sidebar background */
+[data-testid="stSidebar"]{
     background:
     linear-gradient(
-    135deg,
-    #eef6ff,
-    #ffffff
+    180deg,
+    #0f172a,
+    #1e3a8a
     );
 }
 
 
-.main-title{
-    font-size:55px;
-    font-weight:800;
-    color:#0f172a;
+/* tulisan menu sidebar */
+[data-testid="stSidebar"] *{
+    color:white;
 }
 
 
-.subtitle{
-    font-size:22px;
-    color:#475569;
+/* hover menu */
+[data-testid="stSidebarNavLink"]:hover{
+    background-color:#2563eb;
+    border-radius:10px;
 }
 
 
-.card{
-    background:white;
-    padding:25px;
-    border-radius:20px;
-    box-shadow:0px 8px 25px rgba(0,0,0,0.08);
-    height:180px;
+/* menu aktif */
+[data-testid="stSidebarNavLink"][aria-current="page"]{
+    background-color:#3b82f6;
+    border-radius:10px;
 }
 
 
 </style>
 """,
 unsafe_allow_html=True)
-
-
-st.markdown(
-"""
-<div class="main-title">
-NUSA DATA
-</div>
-
-<div class="subtitle">
-National Unified Statistics and Development Analytics
-</div>
-
-""",
-unsafe_allow_html=True
-)
-
 
 st.subheader(
 "National Unified Statistics and Development Analytics"
