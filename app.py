@@ -53,20 +53,6 @@ st.subheader(
 )
 
 
-st.write(
-"""
-Platform AI untuk integrasi:
-
-📊 Data pembangunan
-
-💬 Aspirasi masyarakat
-
-🤖 Rekomendasi kebijakan
-
-"""
-)
-
-
 a,b,c = st.columns(3)
 
 
