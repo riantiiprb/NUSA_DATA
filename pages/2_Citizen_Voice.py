@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
+import joblib
+import os
+import re
+import string
 import plotly.express as px
 
 
@@ -12,24 +15,31 @@ st.set_page_config(
 
 st.title("Citizen Voice Intelligence")
 
+
+# =====================
+# LOAD MODEL
+# =====================
+
 model = joblib.load(
     os.path.join(
         os.path.dirname(__file__),
-        "nlp_model.pkl"
+        "model_linear_svm.pkl"
     )
 )
+
 
 tfidf = joblib.load(
     os.path.join(
         os.path.dirname(__file__),
-        "tfidf.pkl"
+        "tfidf_vectorizer.pkl"
     )
 )
+
 
 le = joblib.load(
     os.path.join(
         os.path.dirname(__file__),
-        "label_encoder.pkl"
+        "label_encoder (1).pkl"
     )
 )
 
@@ -44,6 +54,69 @@ untuk mengidentifikasi isu publik.
 )
 
 
+
+# =====================
+# PREPROCESS
+# =====================
+
+sw_set = set([
+    'yg','nya','dgn','utk','dr','pd','tsb',
+    'dll','krn','jg','sdh','tlg','kmrn',
+    'spt','lg','udh','bgt','jd','sy',
+    'mohon','tolong','terima','kasih',
+    'bapak','ibu','pak','bu',
+    'terkait','mengenai','perihal',
+    'warga','masyarakat',
+    'pemerintah','dinas'
+])
+
+
+def preprocess(text):
+
+    text = str(text).lower()
+
+    text = re.sub(
+        r'<[^>]+>',
+        ' ',
+        text
+    )
+
+    text = re.sub(
+        r'http\S+|www\S+',
+        ' ',
+        text
+    )
+
+    text = re.sub(
+        r'\d+',
+        ' ',
+        text
+    )
+
+    text = text.translate(
+        str.maketrans(
+            '',
+            '',
+            string.punctuation
+        )
+    )
+
+    text = re.sub(
+        r'\s+',
+        ' ',
+        text
+    ).strip()
+
+
+    text = ' '.join(
+        w for w in text.split()
+        if w not in sw_set
+    )
+
+    return text
+
+
+
 # =====================
 # UPLOAD
 # =====================
@@ -54,86 +127,93 @@ file = st.file_uploader(
 )
 
 
+
 if file:
 
     data = pd.read_csv(file)
 
 
-    st.subheader("Preview Data")
+    st.subheader(
+        "Preview Data"
+    )
 
     st.dataframe(
         data.head()
     )
 
 
-    # pilih kolom teks
     kolom_teks = st.selectbox(
         "Pilih kolom aspirasi",
         data.columns
     )
 
 
-    # =====================
-    # CLEANING
-    # =====================
-
-    text = (
-        data[kolom_teks]
-        .dropna()
-        .astype(str)
-    )
-
-
     st.metric(
         "Jumlah Aspirasi",
-        len(text)
+        len(data)
     )
 
 
 
     # =====================
-    # NLP TF-IDF
+    # NLP PREDICTION
     # =====================
 
-
-    vectorizer = TfidfVectorizer(
-        stop_words="english",
-        max_features=30
+    data["clean"] = (
+        data[kolom_teks]
+        .fillna("")
+        .apply(preprocess)
     )
 
 
-    tfidf = vectorizer.fit_transform(
-        text
+    X = tfidf.transform(
+        data["clean"]
     )
 
 
-    score = (
-        tfidf
-        .mean(axis=0)
-        .A1
+    prediction = model.predict(X)
+
+
+    data["Prediksi Isu"] = (
+        le.inverse_transform(
+            prediction
+        )
     )
 
-
-    keywords = pd.DataFrame(
-        {
-            "Keyword":
-            vectorizer.get_feature_names_out(),
-
-            "Score":
-            score
-        }
-    )
-
-
-    keywords = keywords.sort_values(
-        "Score",
-        ascending=False
-    )
 
 
     # =====================
     # OUTPUT
     # =====================
+
+    st.subheader(
+        "Hasil Klasifikasi Isu"
+    )
+
+
+    st.dataframe(
+        data[
+            [
+                kolom_teks,
+                "Prediksi Isu"
+            ]
+        ]
+    )
+
+
+    # jumlah isu
+
+    issue_count = (
+        data["Prediksi Isu"]
+        .value_counts()
+        .reset_index()
+    )
+
+    issue_count.columns = [
+        "Isu",
+        "Jumlah"
+    ]
+
 
 
     left,right = st.columns(2)
@@ -143,14 +223,14 @@ if file:
     with left:
 
         st.subheader(
-            "Top Keyword Aspirasi"
+            "Distribusi Isu"
         )
 
 
         fig = px.bar(
-            keywords.head(10),
-            x="Score",
-            y="Keyword",
+            issue_count,
+            x="Jumlah",
+            y="Isu",
             orientation="h"
         )
 
@@ -169,15 +249,15 @@ if file:
         )
 
 
-        for k in keywords.head(5)["Keyword"]:
-            st.info(k)
+        for i in issue_count.head(5)["Isu"]:
+            st.info(i)
 
 
 
-    # simpan untuk NUSA MATCH
+    # untuk integrasi priority engine
 
     st.session_state["top_issue"] = (
-        keywords.iloc[0]["Keyword"]
+        issue_count.iloc[0]["Isu"]
     )
 
 
