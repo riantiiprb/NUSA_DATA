@@ -41,14 +41,6 @@ tfidf = joblib.load(
 )
 
 
-le = joblib.load(
-    os.path.join(
-        BASE_DIR,
-        "label_encoder (1).pkl"
-    )
-)
-
-
 st.write(
 """
 Analisis aspirasi masyarakat menggunakan 
@@ -58,17 +50,16 @@ untuk mengidentifikasi isu publik.
 )
 
 
+
 # =====================
 # PREPROCESS
 # =====================
 
 sw_set = set([
-    'yg','nya','dgn','utk','dr','pd','tsb',
-    'dll','krn','jg','sdh','tlg','kmrn',
-    'spt','lg','udh','bgt','jd','sy',
+    'yg','nya','dgn','utk','dr','pd',
+    'tsb','dll','krn','jg','sdh',
+    'tlg','kmrn','udh','bgt','jd',
     'mohon','tolong','terima','kasih',
-    'bapak','ibu','pak','bu',
-    'terkait','mengenai','perihal',
     'warga','masyarakat',
     'pemerintah','dinas'
 ])
@@ -111,7 +102,7 @@ def preprocess(text):
     ).strip()
 
 
-    text = ' '.join(
+    text = " ".join(
         w for w in text.split()
         if w not in sw_set
     )
@@ -157,9 +148,8 @@ if file:
     )
 
 
-
     # =====================
-    # NLP PREDICTION
+    # NLP MODEL
     # =====================
 
     data["clean"] = (
@@ -177,17 +167,10 @@ if file:
     prediction = model.predict(X)
 
 
-    data["Prediksi Isu"] = (
-        le.inverse_transform(
-            prediction
-        )
-    )
+    # Linear SVM langsung keluar label
+    data["Prediksi Isu"] = prediction
 
 
-
-    # =====================
-    # OUTPUT
-    # =====================
 
     st.subheader(
         "Hasil Klasifikasi Isu"
@@ -204,13 +187,18 @@ if file:
     )
 
 
-    # jumlah isu
+
+    # =====================
+    # DASHBOARD
+    # =====================
+
 
     issue_count = (
         data["Prediksi Isu"]
         .value_counts()
         .reset_index()
     )
+
 
     issue_count.columns = [
         "Isu",
@@ -219,16 +207,15 @@ if file:
 
 
 
-    left,right = st.columns(2)
+    col1,col2 = st.columns(2)
 
 
 
-    with left:
+    with col1:
 
         st.subheader(
             "Distribusi Isu"
         )
-
 
         fig = px.bar(
             issue_count,
@@ -237,7 +224,6 @@ if file:
             orientation="h"
         )
 
-
         st.plotly_chart(
             fig,
             use_container_width=True
@@ -245,24 +231,14 @@ if file:
 
 
 
-    with right:
+    with col2:
 
         st.subheader(
-            "Isu Dominan"
+            "Isu Prioritas"
         )
-
 
         for i in issue_count.head(5)["Isu"]:
             st.info(i)
-
-
-
-    # untuk integrasi priority engine
-
-    st.session_state["top_issue"] = (
-        issue_count.iloc[0]["Isu"]
-    )
-
 
 
 else:
