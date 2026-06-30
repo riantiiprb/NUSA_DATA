@@ -1,4 +1,14 @@
 import streamlit as st
+
+
+if "data" not in st.session_state:
+    st.warning(
+        "Silakan upload dataset di halaman utama"
+    )
+    st.stop()
+
+
+df = st.session_state["data"].copy()
 import pandas as pd
 import numpy as np
 import plotly.express as px
