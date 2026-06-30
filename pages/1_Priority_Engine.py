@@ -98,7 +98,35 @@ if file:
     ]
 
 
-    for col in fitur:
+    # =====================
+    # CLEANING NUMERIC
+    # =====================
+
+    kolom_numeric = [
+        "Miskin_Kota",
+        "Miskin_Desa",
+        "Pengangguran",
+        "PDRB",
+        "HLS",
+        "RLS",
+        "UHH_L",
+        "UHH_P",
+        "Sanitasi",
+        "AirMinum",
+        "Internet_Kota",
+        "Internet_Desa"
+    ]
+
+
+    for col in kolom_numeric:
+
+        df[col] = (
+            df[col]
+            .astype(str)
+            .str.replace("%","")
+            .str.replace(",","")
+        )
+
         df[col] = pd.to_numeric(
             df[col],
             errors="coerce"
@@ -106,6 +134,46 @@ if file:
 
 
     df = df.dropna()
+
+
+
+    # =====================
+    # FEATURE ENGINEERING
+    # sama notebook teman
+    # =====================
+
+    df["Kemiskinan"] = (
+        df["Miskin_Kota"] +
+        df["Miskin_Desa"]
+    ) / 2
+
+
+    df["UHH"] = (
+        df["UHH_L"] +
+        df["UHH_P"]
+    ) / 2
+
+
+    # sama notebook
+    # khusus internet
+
+    df["Internet"] = (
+        df["Internet_Kota"] +
+        df["Internet_Desa"]
+    ) / 2
+
+
+
+    fitur = [
+        "Kemiskinan",
+        "Pengangguran",
+        "PDRB",
+        "RLS",
+        "UHH",
+        "Sanitasi",
+        "AirMinum",
+        "Internet"
+    ]
 
 
 
