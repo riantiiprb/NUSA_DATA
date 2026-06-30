@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-
+import json
+from shapely.geometry import shape
 from sklearn.preprocessing import RobustScaler
 from sklearn.cluster import KMeans
 
@@ -95,10 +96,28 @@ if file:
 
 
     # hapus Indonesia kalau ada
-    df = df[df["Provinsi"]!="INDONESIA"]
+# hapus agregat nasional
+df = df[df["Provinsi"]!="INDONESIA"]
 
 
-    df = df.dropna()
+# hapus provinsi yang tidak ada di notebook
+hapus_prov = [
+    "PAPUA BARAT DAYA",
+    "PAPUA TENGAH",
+    "PAPUA PEGUNUNGAN",
+    "PAPUA SELATAN"
+]
+
+
+df = df[
+    ~df["Provinsi"].isin(hapus_prov)
+]
+
+
+df = df.reset_index(drop=True)
+
+
+df = df.dropna()
 
 
 
@@ -120,10 +139,20 @@ if file:
 
 
     # khusus internet
-    df["Internet"] = (
-        df["Internet_Kota"] +
-        df["Internet_Desa"]
-    ) / 2
+df["Internet"] = (
+    df["Internet_Kota"] +
+    df["Internet_Desa"]
+) / 2
+
+
+# sesuai notebook
+df.loc[
+    df["Provinsi"]=="DKI JAKARTA",
+    "Internet"
+] = df.loc[
+    df["Provinsi"]=="DKI JAKARTA",
+    "Internet_Kota"
+]
 
 
     fitur = [
@@ -147,7 +176,20 @@ if file:
         df["PDRB"]
     )
 
+# =====================
+# WINSORIZE 5%-95%
+# sama notebook
+# =====================
 
+for col in fitur:
+
+    batas_bawah = df[col].quantile(0.05)
+    batas_atas = df[col].quantile(0.95)
+
+    df[col] = df[col].clip(
+        batas_bawah,
+        batas_atas
+    )
     # =====================
     # ROBUST SCALER
     # =====================
@@ -255,7 +297,56 @@ if file:
         use_container_width=True
     )
 
+# =====================
+# PETA INDONESIA
+# =====================
 
+st.subheader(
+    "Peta Persebaran Cluster Indonesia"
+)
+
+
+geo_url = (
+"https://raw.githubusercontent.com/"
+"williamedwardhahn/indonesia-geojson/"
+"master/indonesia.geojson"
+)
+
+
+try:
+
+    fig_map = px.choropleth(
+        df,
+        geojson=geo_url,
+        locations="Provinsi",
+        featureidkey="properties.Propinsi",
+        color="Label",
+        color_discrete_map={
+            "Maju":"green",
+            "Berkembang":"orange",
+            "Tertinggal":"red"
+        },
+        title="Development Cluster Map"
+    )
+
+
+    fig_map.update_geos(
+        fitbounds="locations",
+        visible=False
+    )
+
+
+    st.plotly_chart(
+        fig_map,
+        use_container_width=True
+    )
+
+
+except Exception as e:
+
+    st.warning(
+        f"Peta belum tampil: {e}"
+    )
 
     # =====================
     # PROFIL
