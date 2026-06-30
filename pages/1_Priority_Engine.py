@@ -8,15 +8,6 @@ from sklearn.preprocessing import RobustScaler
 from sklearn.cluster import KMeans
 
 
-if "data" not in st.session_state:
-    st.warning(
-        "Silakan upload dataset di halaman utama"
-    )
-    st.stop()
-
-
-df = st.session_state["data"].copy()
-
 
 st.set_page_config(
     page_title="Development Priority",
@@ -24,42 +15,38 @@ st.set_page_config(
 )
 
 
-st.title("NUSA DATA - Development Priority Engine")
+
+# =====================
+# AMBIL DATA DARI HOME
+# =====================
+
+if "pembangunan" not in st.session_state:
+
+    st.warning(
+        "Silakan upload dataset pembangunan di halaman utama"
+    )
+
+    st.stop()
 
 
-file = st.file_uploader(
-    "Upload Dataset Pembangunan",
-    type=["csv","xlsx"]
+
+df = st.session_state["pembangunan"].copy()
+
+
+
+st.title(
+"NUSA DATA - Development Priority Engine"
 )
 
 
-if file:
-
-    if file.name.endswith(".xlsx"):
-        df = pd.read_excel(file)
-    else:
-        df = pd.read_csv(file)
+st.subheader(
+"Dataset Pembangunan"
+)
 
 
-    # simpan global
-    st.session_state["data"] = df
-
-
-else:
-
-    if "data" not in st.session_state:
-        st.warning(
-            "Silakan upload dataset dulu"
-        )
-        st.stop()
-
-
-    df = st.session_state["data"].copy()
-
-
-    st.subheader("Dataset Pembangunan")
-    st.dataframe(df.head())
-
+st.dataframe(
+df.head()
+)
 
     # =====================
     # RENAME
@@ -349,3 +336,48 @@ except Exception as e:
     st.warning(
         f"Peta belum tampil: {e}"
     )
+
+# =====================
+# PRIORITY RECOMMENDATION
+# =====================
+
+
+def priority_rule(row):
+
+    if row["Label"]=="Tertinggal":
+        return "Prioritas Tinggi"
+
+    elif row["Label"]=="Berkembang":
+        return "Prioritas Sedang"
+
+    return "Prioritas Rendah"
+
+
+
+df["Priority"] = df.apply(
+    priority_rule,
+    axis=1
+)
+
+
+
+st.subheader(
+"Rekomendasi Prioritas Wilayah"
+)
+
+
+st.dataframe(
+df[
+[
+"Provinsi",
+"Label",
+"Priority"
+]
+]
+)
+
+
+
+# simpan untuk NUSA MATCH
+
+st.session_state["cluster_result"] = df
