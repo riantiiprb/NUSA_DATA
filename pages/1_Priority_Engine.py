@@ -8,16 +8,14 @@ from sklearn.preprocessing import RobustScaler
 from sklearn.cluster import KMeans
 
 
-
 st.set_page_config(
     page_title="Development Priority",
     layout="wide"
 )
 
 
-
 # =====================
-# AMBIL DATA DARI HOME
+# CEK DATA
 # =====================
 
 if "pembangunan" not in st.session_state:
@@ -29,7 +27,6 @@ if "pembangunan" not in st.session_state:
     st.stop()
 
 
-
 df = st.session_state["pembangunan"].copy()
 
 
@@ -37,6 +34,7 @@ df = st.session_state["pembangunan"].copy()
 st.title(
 "NUSA DATA - Development Priority Engine"
 )
+
 
 
 st.subheader(
@@ -48,26 +46,27 @@ st.dataframe(
 df.head()
 )
 
-    # =====================
-    # RENAME
-    # =====================
 
-    df.columns = [
-        "Provinsi",
-        "Miskin_Kota",
-        "Miskin_Desa",
-        "Pengangguran",
-        "PDRB",
-        "HLS",
-        "RLS",
-        "UHH_L",
-        "UHH_P",
-        "Sanitasi",
-        "AirMinum",
-        "Internet_Kota",
-        "Internet_Desa"
-    ]
 
+# =====================
+# RENAME
+# =====================
+
+df.columns = [
+    "Provinsi",
+    "Miskin_Kota",
+    "Miskin_Desa",
+    "Pengangguran",
+    "PDRB",
+    "HLS",
+    "RLS",
+    "UHH_L",
+    "UHH_P",
+    "Sanitasi",
+    "AirMinum",
+    "Internet_Kota",
+    "Internet_Desa"
+]
 
     # =====================
     # CLEANING NUMERIC
