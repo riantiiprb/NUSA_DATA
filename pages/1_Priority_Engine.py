@@ -3,9 +3,10 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import json
-from shapely.geometry import shape
+
 from sklearn.preprocessing import RobustScaler
 from sklearn.cluster import KMeans
+
 
 
 st.set_page_config(
