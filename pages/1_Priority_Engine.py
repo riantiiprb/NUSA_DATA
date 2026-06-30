@@ -276,27 +276,23 @@ if file:
     )
 
 
-    geo_url = (
-    "https://raw.githubusercontent.com/"
-    "williamedwardhahn/indonesia-geojson/"
-    "master/indonesia.geojson"
-    )
+    geo_url = "indonesia-map-geojson (1).json"
 
 
     try:
 
         fig_map = px.choropleth(
-            df,
-            geojson=geo_url,
-            locations="Provinsi",
-            featureidkey="properties.Propinsi",
-            color="Label",
-            color_discrete_map={
-                "Maju":"green",
-                "Berkembang":"orange",
-                "Tertinggal":"red"
-            }
-        )
+    df,
+    geojson=geo_url,
+    locations="Provinsi",
+    featureidkey="properties.PROVINSI",
+    color="Label",
+    color_discrete_map={
+        "Maju":"green",
+        "Berkembang":"orange",
+        "Tertinggal":"red"
+    }
+)
 
 
         fig_map.update_geos(
