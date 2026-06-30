@@ -136,5 +136,5 @@ with b:
 
 with c:
     st.info(
-    "NUSA MATCH\n\nAI Recommendation"
+    "NUSA MATCH"
     )
