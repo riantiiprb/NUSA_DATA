@@ -124,13 +124,13 @@ a,b,c = st.columns(3)
 
 with a:
     st.info(
-    "Development Priority Engine\n\nClustering wilayah"
+    "Development Priority Engine"
     )
 
 
 with b:
     st.info(
-    "Citizen Voice Intelligence\n\nNLP aspirasi"
+    "Citizen Voice Intelligence"
     )
 
 
