@@ -96,6 +96,7 @@ if file:
 
 
        # hapus agregat nasional
+    # hapus agregat nasional
     df = df[df["Provinsi"]!="INDONESIA"]
 
 
@@ -252,7 +253,19 @@ if file:
         df["Cluster"]
         .apply(label_cluster)
     )
+    st.success("Clustering berhasil")
 
+    st.subheader("Hasil Segmentasi Wilayah")
+
+    st.dataframe(
+        df[
+            [
+                "Provinsi",
+                "Cluster",
+                "Label"
+            ]
+        ]
+    )
 
     # =====================
     # PETA INDONESIA
