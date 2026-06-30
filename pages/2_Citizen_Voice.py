@@ -41,19 +41,8 @@ tfidf = joblib.load(
 )
 
 
-st.write(
-"""
-Analisis aspirasi masyarakat menggunakan 
-Natural Language Processing (NLP)
-untuk mengidentifikasi isu publik.
-"""
-)
-
-
-
-# =====================
 # PREPROCESS
-# =====================
+
 
 sw_set = set([
     'yg','nya','dgn','utk','dr','pd',
