@@ -13,19 +13,17 @@ st.set_page_config(
 )
 
 
-st.title("Development Priority Engine")
-
+st.title("NUSA DATA - Development Priority Engine")
 
 
 file = st.file_uploader(
-    "Upload Data Pembangunan",
+    "Upload Dataset Pembangunan",
     type=["csv","xlsx"]
 )
 
 
 
 if file:
-
 
     # =====================
     # LOAD DATA
@@ -37,34 +35,54 @@ if file:
         df = pd.read_csv(file)
 
 
+    st.subheader("Dataset Pembangunan")
 
-    st.subheader(
-        "Dataset Pembangunan"
-    )
+    st.dataframe(df.head())
 
-    st.dataframe(
-        df.head()
-    )
+
+    # =====================
+    # RENAME SESUAI DATASET
+    # =====================
+
+    df.columns = [
+        "Provinsi",
+        "Miskin_Kota",
+        "Miskin_Desa",
+        "Pengangguran",
+        "PDRB",
+        "HLS",
+        "RLS",
+        "UHH_L",
+        "UHH_P",
+        "Sanitasi",
+        "AirMinum",
+        "Internet_Kota",
+        "Internet_Desa"
+    ]
 
 
 
     # =====================
-    # RENAME KOLOM
-    # SESUAI DATASET TEMANMU
+    # FEATURE ENGINEERING
+    # sama seperti notebook
     # =====================
 
-    df = df.rename(columns={
+    df["Kemiskinan"] = (
+        df["Miskin_Kota"] +
+        df["Miskin_Desa"]
+    ) / 2
 
-        df.columns[0]:"Provinsi",
-        df.columns[1]:"Kemiskinan",
-        df.columns[2]:"Pengangguran",
-        df.columns[3]:"PDRB",
-        df.columns[4]:"RLS",
-        df.columns[5]:"Sanitasi",
-        df.columns[6]:"AirMinum",
-        df.columns[7]:"Internet"
 
-    })
+    df["UHH"] = (
+        df["UHH_L"] +
+        df["UHH_P"]
+    ) / 2
+
+
+    df["Internet"] = (
+        df["Internet_Kota"] +
+        df["Internet_Desa"]
+    ) / 2
 
 
 
@@ -73,15 +91,14 @@ if file:
         "Pengangguran",
         "PDRB",
         "RLS",
+        "UHH",
         "Sanitasi",
         "AirMinum",
         "Internet"
     ]
 
 
-
     for col in fitur:
-
         df[col] = pd.to_numeric(
             df[col],
             errors="coerce"
@@ -93,10 +110,19 @@ if file:
 
 
     # =====================
-    # ROBUST SCALER
-    # (punya temanmu)
+    # TRANSFORM PDRB
+    # sama notebook
     # =====================
 
+    df["PDRB"] = np.log1p(
+        df["PDRB"]
+    )
+
+
+
+    # =====================
+    # SCALING
+    # =====================
 
     scaler = RobustScaler()
 
@@ -108,62 +134,78 @@ if file:
 
 
     # =====================
-    # KMEANS K=2
+    # KMEANS K=3
     # =====================
 
-
     model = KMeans(
-        n_clusters=2,
+        n_clusters=3,
         n_init=100,
         random_state=42
     )
 
 
-    df["Cluster"] = (
-        model.fit_predict(X)
-    )
+    df["Cluster"] = model.fit_predict(X)
 
 
 
     # =====================
-    # LABELING
-    Maju/Tertinggal
+    # LABEL CLUSTER
+    # sesuai notebook
     # =====================
 
 
-    rata = (
+    cluster_profile = (
         df.groupby("Cluster")
-        ["PDRB"]
+        [["PDRB","Kemiskinan"]]
         .mean()
     )
 
 
-    cluster_maju = (
-        rata.idxmax()
+    # PDRB tertinggi = maju
+    maju = (
+        cluster_profile["PDRB"]
+        .idxmax()
     )
 
 
-    df["Label"] = np.where(
-        df["Cluster"]==cluster_maju,
-        "Maju",
-        "Tertinggal"
+    tertinggal = (
+        cluster_profile["Kemiskinan"]
+        .idxmax()
     )
 
+
+    def label_cluster(x):
+
+        if x == maju:
+            return "Maju"
+
+        elif x == tertinggal:
+            return "Tertinggal"
+
+        else:
+            return "Berkembang"
+
+
+
+    df["Label"] = (
+        df["Cluster"]
+        .apply(label_cluster)
+    )
 
 
     st.success(
-        "Clustering berhasil"
+        "Clustering pembangunan berhasil"
     )
 
 
 
     # =====================
-    # OUTPUT
+    # HASIL
     # =====================
 
 
     st.subheader(
-        "Hasil Prioritas"
+        "Hasil Segmentasi Wilayah"
     )
 
 
@@ -174,8 +216,14 @@ if file:
             "Label"
             ]
         ]
+        .sort_values("Label")
     )
 
+
+
+    # =====================
+    # VISUAL
+    # =====================
 
 
     fig = px.scatter(
@@ -184,7 +232,7 @@ if file:
         y="PDRB",
         color="Label",
         hover_name="Provinsi",
-        title="Cluster Provinsi"
+        title="Development Cluster Indonesia"
     )
 
 
@@ -194,5 +242,28 @@ if file:
     )
 
 
+
+    # =====================
+    # PROFIL CLUSTER
+    # =====================
+
+
+    st.subheader(
+        "Profil Rata-rata Cluster"
+    )
+
+
+    profile = (
+        df.groupby("Label")[fitur]
+        .mean()
+        .round(2)
+    )
+
+
+    st.dataframe(profile)
+
+
+
+    # simpan untuk modul lain
 
     st.session_state["cluster_result"] = df
