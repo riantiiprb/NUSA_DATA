@@ -14,12 +14,6 @@ st.set_page_config(
 )
 
 
-st.title("NUSA DATA - Development Priority Engine")
-st.subheader("Dataset Pembangunan")
-st.dataframe(df.head())
-
-
-
 # =====================
 # RENAME
 # =====================
@@ -40,25 +34,24 @@ df.columns = [
     "Internet_Desa"
 ]
 
-    # =====================
-    # CLEANING NUMERIC
-    # =====================
+# =====================
+# CLEANING NUMERIC
+# =====================
 
-    kolom_numeric = [
-        "Miskin_Kota",
-        "Miskin_Desa",
-        "Pengangguran",
-        "PDRB",
-        "HLS",
-        "RLS",
-        "UHH_L",
-        "UHH_P",
-        "Sanitasi",
-        "AirMinum",
-        "Internet_Kota",
-        "Internet_Desa"
-    ]
-
+kolom_numeric = [
+    "Miskin_Kota",
+    "Miskin_Desa",
+    "Pengangguran",
+    "PDRB",
+    "HLS",
+    "RLS",
+    "UHH_L",
+    "UHH_P",
+    "Sanitasi",
+    "AirMinum",
+    "Internet_Kota",
+    "Internet_Desa"
+]
 
     for col in kolom_numeric:
 
