@@ -14,23 +14,6 @@ st.set_page_config(
 )
 
 
-# =====================
-# CEK DATA
-# =====================
-
-if "pembangunan" not in st.session_state:
-
-    st.warning(
-        "Silakan upload dataset pembangunan di halaman utama"
-    )
-
-    st.stop()
-
-
-df = st.session_state["pembangunan"].copy()
-
-
-
 st.title("NUSA DATA - Development Priority Engine")
 st.subheader("Dataset Pembangunan")
 st.dataframe(df.head())
