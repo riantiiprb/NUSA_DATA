@@ -269,47 +269,62 @@ if file:
     )
 
     # =====================
-    # PETA INDONESIA
-    # =====================
+# PETA INDONESIA
+# =====================
 
-    st.subheader(
-        "Peta Persebaran Cluster Indonesia"
-    )
-
-
-    geo_url = "indonesia-map-geojson (1).json"
-
-
-    try:
-
-        fig_map = px.choropleth(
-    df,
-    geojson=geo_url,
-    locations="Provinsi",
-    featureidkey="properties.PROVINSI",
-    color="Label",
-    color_discrete_map={
-        "Maju":"green",
-        "Berkembang":"orange",
-        "Tertinggal":"red"
-    }
+st.subheader(
+    "Peta Persebaran Cluster Indonesia"
 )
 
 
-        fig_map.update_geos(
-            fitbounds="locations",
-            visible=False
-        )
+geo_url = "indonesia-map-geojson (1).json"
 
 
-        st.plotly_chart(
-            fig_map,
-            use_container_width=True
-        )
+try:
+
+    with open(geo_url, encoding="utf-8") as f:
+        geojson = json.load(f)
 
 
-    except Exception as e:
+    fig_map = px.choropleth(
+        df,
+        geojson=geojson,
+        locations="Provinsi",
+        featureidkey="properties.PROVINSI",
+        color="Label",
+        color_discrete_map={
+            "Maju":"green",
+            "Berkembang":"orange",
+            "Tertinggal":"red"
+        }
+    )
 
-        st.warning(
-            f"Peta belum tampil: {e}"
-        )
+
+    fig_map.update_geos(
+        fitbounds="locations",
+        visible=False
+    )
+
+
+    fig_map.update_layout(
+        height=700,
+        margin={
+            "r":0,
+            "t":0,
+            "l":0,
+            "b":0
+        }
+    )
+
+
+    st.plotly_chart(
+        fig_map,
+        use_container_width=True
+    )
+
+
+except Exception as e:
+
+    st.warning(
+        f"Peta belum tampil: {e}"
+    )
