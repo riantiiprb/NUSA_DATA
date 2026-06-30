@@ -5,6 +5,7 @@ import plotly.express as px
 import json
 
 from sklearn.preprocessing import RobustScaler
+from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 
 
@@ -14,58 +15,99 @@ st.set_page_config(
 )
 
 
-# =====================
-# RENAME
-# =====================
-# =====================
-# AMBIL DATA DARI APP
-# =====================
-
-if "pembangunan" not in st.session_state:
-    st.warning(
-        "Silakan upload dataset pembangunan di halaman utama"
-    )
-    st.stop()
+st.title("NUSA DATA - Development Priority Engine")
 
 
-df = st.session_state["pembangunan"].copy()
+file = st.file_uploader(
+    "Upload Dataset Pembangunan",
+    type=["csv","xlsx"]
+)
 
-df.columns = [
-    "Provinsi",
-    "Miskin_Kota",
-    "Miskin_Desa",
-    "Pengangguran",
-    "PDRB",
-    "HLS",
-    "RLS",
-    "UHH_L",
-    "UHH_P",
-    "Sanitasi",
-    "AirMinum",
-    "Internet_Kota",
-    "Internet_Desa"
-]
 
-# =====================
-# CLEANING NUMERIC
-# =====================
+if file:
 
-kolom_numeric = [
-    "Miskin_Kota",
-    "Miskin_Desa",
-    "Pengangguran",
-    "PDRB",
-    "HLS",
-    "RLS",
-    "UHH_L",
-    "UHH_P",
-    "Sanitasi",
-    "AirMinum",
-    "Internet_Kota",
-    "Internet_Desa"
-]
+    # =====================
+    # LOAD DATA
+    # =====================
 
-for col in kolom_numeric:
+    if file.name.endswith(".xlsx"):
+        df = pd.read_excel(file)
+    else:
+        df = pd.read_csv(file)
+
+
+    st.subheader("Dataset Pembangunan")
+    st.dataframe(df.head())
+
+
+    # =====================
+    # RENAME
+    # SAMA NOTEBOOK
+    # =====================
+
+    df.columns = [
+        "Provinsi",
+        "Miskin_Kota",
+        "Miskin_Desa",
+        "Pengangguran",
+        "PDRB",
+        "HLS",
+        "RLS",
+        "UHH_L",
+        "UHH_P",
+        "Sanitasi",
+        "AirMinum",
+        "Internet_Kota",
+        "Internet_Desa"
+    ]
+
+
+
+    # =====================
+    # HAPUS DATA
+    # SAMA NOTEBOOK
+    # =====================
+
+    df = df[df["Provinsi"]!="INDONESIA"]
+
+
+    hapus = [
+        "PAPUA BARAT DAYA",
+        "PAPUA TENGAH",
+        "PAPUA PEGUNUNGAN",
+        "PAPUA SELATAN"
+    ]
+
+
+    df = df[
+        ~df["Provinsi"].isin(hapus)
+    ]
+
+
+
+    # =====================
+    # CLEAN NUMERIC
+    # DITAMBAHKAN AGAR STREAMLIT AMAN
+    # =====================
+
+
+    numeric = [
+        "Miskin_Kota",
+        "Miskin_Desa",
+        "Pengangguran",
+        "PDRB",
+        "HLS",
+        "RLS",
+        "UHH_L",
+        "UHH_P",
+        "Sanitasi",
+        "AirMinum",
+        "Internet_Kota",
+        "Internet_Desa"
+    ]
+
+
+    for col in numeric:
 
         df[col] = (
             df[col]
@@ -80,35 +122,20 @@ for col in kolom_numeric:
         )
 
 
-       # hapus agregat nasional
-    # hapus agregat nasional
-    df = df[df["Provinsi"]!="INDONESIA"]
-
-
-    # hapus provinsi yang tidak ada di notebook
-    hapus_prov = [
-        "PAPUA BARAT DAYA",
-        "PAPUA TENGAH",
-        "PAPUA PEGUNUNGAN",
-        "PAPUA SELATAN"
-    ]
-
-
-    df = df[
-        ~df["Provinsi"].isin(hapus_prov)
-    ]
-
-
-    df = df.reset_index(drop=True)
-
-    df = df.dropna()
+    # median imputation
+    for col in numeric:
+        df[col] = (
+            df[col]
+            .fillna(df[col].median())
+        )
 
 
 
     # =====================
     # FEATURE ENGINEERING
-    # SESUAI COLAB
+    # SAMA NOTEBOOK
     # =====================
+
 
     df["Kemiskinan"] = (
         df["Miskin_Kota"] +
@@ -122,20 +149,21 @@ for col in kolom_numeric:
     ) / 2
 
 
+
     df["Internet"] = (
         df["Internet_Kota"] +
         df["Internet_Desa"]
     ) / 2
 
 
-    # khusus DKI
-    df.loc[
-        df["Provinsi"]=="DKI JAKARTA",
-        "Internet"
-    ] = df.loc[
-        df["Provinsi"]=="DKI JAKARTA",
-        "Internet_Kota"
-    ]
+
+    # DKI adjustment
+    dki = df["Provinsi"]=="DKI JAKARTA"
+
+    df.loc[dki,"Internet"] = (
+        df.loc[dki,"Internet_Kota"]
+    )
+
 
 
     fitur = [
@@ -153,8 +181,10 @@ for col in kolom_numeric:
 
 
     # =====================
-    # LOG TRANSFORM PDRB
-    # =====================
+    # PREPROCESSING
+    SAMA NOTEBOOK
+    =====================
+
 
     df["PDRB"] = np.log1p(
         df["PDRB"]
@@ -162,10 +192,7 @@ for col in kolom_numeric:
 
 
 
-    # =====================
-    # WINSORIZE 5%-95%
-    # =====================
-
+    # winsorize
     for col in fitur:
 
         low = df[col].quantile(0.05)
@@ -178,11 +205,8 @@ for col in kolom_numeric:
 
 
 
-    # =====================
-    # ROBUST SCALER
-    # =====================
-
     scaler = RobustScaler()
+
 
     X = scaler.fit_transform(
         df[fitur]
@@ -192,7 +216,8 @@ for col in kolom_numeric:
 
     # =====================
     # KMEANS
-    # =====================
+    =====================
+
 
     model = KMeans(
         n_clusters=3,
@@ -201,13 +226,17 @@ for col in kolom_numeric:
     )
 
 
-    df["Cluster"] = model.fit_predict(X)
+    df["Cluster"] = (
+        model.fit_predict(X)
+    )
 
 
 
     # =====================
-    # LABEL CLUSTER
-    # =====================
+    # LABEL
+    SAMA NOTEBOOK
+    =====================
+
 
     profile = (
         df.groupby("Cluster")
@@ -216,13 +245,19 @@ for col in kolom_numeric:
     )
 
 
-    maju = profile["PDRB"].idxmax()
+    maju = (
+        profile["PDRB"]
+        .idxmax()
+    )
 
-    tertinggal = profile["Kemiskinan"].idxmax()
+
+    tertinggal = (
+        profile["Kemiskinan"]
+        .idxmax()
+    )
 
 
-
-    def label_cluster(x):
+    def label(x):
 
         if x == maju:
             return "Maju"
@@ -230,130 +265,143 @@ for col in kolom_numeric:
         elif x == tertinggal:
             return "Tertinggal"
 
-        return "Berkembang"
+        else:
+            return "Berkembang"
 
 
 
     df["Label"] = (
         df["Cluster"]
-        .apply(label_cluster)
+        .apply(label)
     )
-    st.success("Clustering berhasil")
 
-    st.subheader("Hasil Segmentasi Wilayah")
+
+
+    st.success(
+        "Clustering berhasil"
+    )
+
+
+
+    # =====================
+    # HASIL
+    =====================
+
+
+    st.subheader(
+        "Hasil Segmentasi Wilayah"
+    )
+
 
     st.dataframe(
         df[
             [
-                "Provinsi",
-                "Cluster",
-                "Label"
+            "Provinsi",
+            "Label"
             ]
         ]
     )
 
+
+
     # =====================
-# PETA INDONESIA
-# =====================
-
-st.subheader(
-    "Peta Persebaran Cluster Indonesia"
-)
+    # SCATTER
+    =====================
 
 
-geo_url = "indonesia-map-geojson (1).json"
+    pca = PCA(
+        n_components=2
+    )
+
+    X_pca = pca.fit_transform(X)
 
 
-try:
 
-    with open(geo_url, encoding="utf-8") as f:
-        geojson = json.load(f)
+    viz = pd.DataFrame(
+        {
+        "PC1":X_pca[:,0],
+        "PC2":X_pca[:,1],
+        "Provinsi":df["Provinsi"],
+        "Label":df["Label"]
+        }
+    )
 
 
-    fig_map = px.choropleth(
-        df,
-        geojson=geojson,
-        locations="Provinsi",
-        featureidkey="properties.PROVINSI",
+
+    fig = px.scatter(
+        viz,
+        x="PC1",
+        y="PC2",
         color="Label",
-        color_discrete_map={
-            "Maju":"green",
-            "Berkembang":"orange",
-            "Tertinggal":"red"
-        }
-    )
-
-
-    fig_map.update_geos(
-        fitbounds="locations",
-        visible=False
-    )
-
-
-    fig_map.update_layout(
-        height=700,
-        margin={
-            "r":0,
-            "t":0,
-            "l":0,
-            "b":0
-        }
+        hover_name="Provinsi",
+        title="Cluster Development Indonesia"
     )
 
 
     st.plotly_chart(
-        fig_map,
+        fig,
         use_container_width=True
     )
 
 
-except Exception as e:
 
-    st.warning(
-        f"Peta belum tampil: {e}"
+    # =====================
+    # PROFILING
+    =====================
+
+
+    st.subheader(
+        "Profil Cluster"
     )
 
-# =====================
-# PRIORITY RECOMMENDATION
-# =====================
 
-
-def priority_rule(row):
-
-    if row["Label"]=="Tertinggal":
-        return "Prioritas Tinggi"
-
-    elif row["Label"]=="Berkembang":
-        return "Prioritas Sedang"
-
-    return "Prioritas Rendah"
+    st.dataframe(
+        df.groupby("Label")[fitur]
+        .mean()
+        .round(2)
+    )
 
 
 
-df["Priority"] = df.apply(
-    priority_rule,
-    axis=1
-)
+    # =====================
+    # PETA
+    =====================
+
+
+    st.subheader(
+        "Peta Prioritas Pembangunan"
+    )
+
+
+    try:
+
+        geo = open(
+            "indonesia-map-geojson (1).json"
+        )
+
+        geojson = json.load(geo)
+
+
+        st.map(
+            df,
+            latitude=None,
+            longitude=None
+        )
+
+
+        st.info(
+        "GeoJSON siap diintegrasikan untuk pewarnaan provinsi berdasarkan Label"
+        )
+
+
+    except:
+
+        st.warning(
+        "File GeoJSON belum masuk ke folder app"
+        )
 
 
 
-st.subheader(
-"Rekomendasi Prioritas Wilayah"
-)
+    # simpan
 
-
-st.dataframe(
-df[
-[
-"Provinsi",
-"Label",
-"Priority"
-]
-]
-)
-
-
-
-# simpan untuk NUSA MATCH
-
-st.session_state["cluster_result"] = df
+    st.session_state["cluster_result"] = df
