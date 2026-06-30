@@ -5,28 +5,24 @@ st.title(
 "NUSA MATCH"
 )
 
-
 st.subheader(
-"AI Policy Recommendation Engine"
+"Policy Recommendation Matching System"
 )
 
 
 
-
-# input hasil analisis
-
 cluster = st.selectbox(
-"Cluster Wilayah",
+"Karakteristik Wilayah",
 [
-"Prioritas Tinggi",
+"Tertinggal",
 "Berkembang",
-"Stabil"
+"Maju"
 ]
 )
 
 
 issue = st.selectbox(
-"Isu Dominan Masyarakat",
+"Isu Prioritas Masyarakat",
 [
 "Kemiskinan",
 "Pengangguran",
@@ -39,111 +35,100 @@ issue = st.selectbox(
 
 
 
-# AI decision engine sederhana
-
-if cluster=="Prioritas Tinggi":
-
-
-    score=90
-
-
-elif cluster=="Berkembang":
-
-    score=65
-
-
-else:
-
-    score=40
-
-
-
-# tambah bobot NLP
-
-if issue in [
-    "Kemiskinan",
-    "Pengangguran",
-    "Infrastruktur"
-]:
-
-    score +=10
-
-
-
-st.metric(
-"AI Priority Score",
-f"{score}/100"
-)
-
-
-
 st.divider()
 
 
 
 st.subheader(
-"AI Recommendation"
+"Rekomendasi Program"
 )
 
 
 
-if score >=80:
+if cluster=="Tertinggal":
 
 
-    hasil=f"""
-Wilayah memiliki prioritas pembangunan tinggi.
+    if issue=="Kemiskinan":
 
-Berdasarkan:
-- Cluster pembangunan: {cluster}
-- Isu masyarakat: {issue}
+        rekomendasi = """
+Prioritas:
+Peningkatan kesejahteraan masyarakat
 
-Rekomendasi:
+Program yang direkomendasikan:
 
-✓ Program peningkatan ekonomi masyarakat
+✓ Bantuan sosial tepat sasaran
+
+✓ Pemberdayaan ekonomi masyarakat
+
+✓ Penguatan UMKM lokal
+"""
+
+
+    elif issue=="Pengangguran":
+
+        rekomendasi="""
+Prioritas:
+Peningkatan kesempatan kerja
+
+Program:
 
 ✓ Pelatihan keterampilan kerja
 
-✓ Penguatan layanan publik
+✓ Program peningkatan kompetensi
 
-✓ Monitoring pembangunan wilayah
-
+✓ Pendampingan pencari kerja
 """
 
 
-elif score>=50:
+    else:
+
+        rekomendasi="""
+Prioritas:
+Penguatan layanan dasar wilayah
+
+Program:
+
+✓ Pembangunan infrastruktur
+
+✓ Peningkatan kualitas pelayanan publik
+"""
 
 
-    hasil=f"""
-Wilayah membutuhkan penguatan pembangunan.
 
-Fokus:
+elif cluster=="Berkembang":
+
+
+    rekomendasi="""
+Prioritas:
+Penguatan pembangunan wilayah
+
+Program:
+
+✓ Digitalisasi layanan
+
+✓ Pengembangan ekonomi lokal
 
 ✓ Peningkatan kualitas SDM
-
-✓ Pengembangan infrastruktur
-
-✓ Digitalisasi layanan publik
-
 """
+
 
 
 else:
 
 
-    hasil=f"""
-Wilayah relatif stabil.
+    rekomendasi="""
+Prioritas:
+Optimalisasi pembangunan
 
-Fokus:
+Program:
 
-✓ Inovasi pembangunan
+✓ Inovasi pelayanan publik
 
-✓ Pemeliharaan layanan
+✓ Peningkatan daya saing daerah
 
-✓ Peningkatan daya saing
+✓ Pemeliharaan fasilitas publik
 """
 
 
 
-st.success(
-hasil
-)
+st.success(rekomendasi)
