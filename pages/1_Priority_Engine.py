@@ -105,9 +105,7 @@ if file:
         "Internet_Kota",
         "Internet_Desa"
     ]
-
-
-    for col in numeric:
+for col in numeric:
 
         df[col] = (
             df[col]
