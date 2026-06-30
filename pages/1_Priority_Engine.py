@@ -31,20 +31,9 @@ df = st.session_state["pembangunan"].copy()
 
 
 
-st.title(
-"NUSA DATA - Development Priority Engine"
-)
-
-
-
-st.subheader(
-"Dataset Pembangunan"
-)
-
-
-st.dataframe(
-df.head()
-)
+st.title("NUSA DATA - Development Priority Engine")
+st.subheader("Dataset Pembangunan")
+st.dataframe(df.head())
 
 
 
