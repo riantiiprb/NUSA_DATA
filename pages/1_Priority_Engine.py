@@ -35,14 +35,26 @@ file = st.file_uploader(
 
 if file:
 
-    # =====================
-    # LOAD DATA
-    # =====================
-
     if file.name.endswith(".xlsx"):
         df = pd.read_excel(file)
     else:
         df = pd.read_csv(file)
+
+
+    # simpan global
+    st.session_state["data"] = df
+
+
+else:
+
+    if "data" not in st.session_state:
+        st.warning(
+            "Silakan upload dataset dulu"
+        )
+        st.stop()
+
+
+    df = st.session_state["data"].copy()
 
 
     st.subheader("Dataset Pembangunan")
