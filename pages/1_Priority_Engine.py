@@ -17,6 +17,18 @@ st.set_page_config(
 # =====================
 # RENAME
 # =====================
+# =====================
+# AMBIL DATA DARI APP
+# =====================
+
+if "pembangunan" not in st.session_state:
+    st.warning(
+        "Silakan upload dataset pembangunan di halaman utama"
+    )
+    st.stop()
+
+
+df = st.session_state["pembangunan"].copy()
 
 df.columns = [
     "Provinsi",
@@ -53,7 +65,7 @@ kolom_numeric = [
     "Internet_Desa"
 ]
 
-    for col in kolom_numeric:
+for col in kolom_numeric:
 
         df[col] = (
             df[col]
